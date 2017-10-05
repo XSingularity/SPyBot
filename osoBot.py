@@ -5,10 +5,10 @@ import tweepy, time#, time, cPickle, random
 #hashtag = str(raw_input("Enter a hastag if you want: "))
 #print "Hastag to use "+hashtag
 
-consumer_key = 'dE28fOWH3JNqiih3VMTLfq4hx'
-consumer_secret = '8AIEdGvu6LhYdcJZfE3lIWaGdj2GgQBDpOMf0UBeSMgyHryJvX'
-access_token = '108980977-oyfwVzqpnHtbR2WsETuFNYVJZnjJh1UTHstCEOoW'
-access_token_secret = 'Et7rVI8jvm4dkxels2QVQ5CRJt8gDC3vw4OHzz7zDaSrL'
+consumer_key = ''
+consumer_secret = ''
+access_token = ''
+access_token_secret = ''
 
 auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
 auth.set_access_token(access_token, access_token_secret)
