@@ -51,6 +51,7 @@ for line in f:
 		time.sleep(wating_dig) # n minutes
 
 	elif line == f[-1] and len(line) <= 140:
+		num_line = 0
 		with open('numero.pickle', 'wb') as fWrite:
 			cPickle.dump(num_line, fWrite)
 

@@ -10,11 +10,11 @@ if __name__ == '__main__':
 	auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
 	auth.set_access_token(access_token, access_token_secret)
 
-	print "Getting all tweets in current timeline..."
+	api = tweepy.API(auth)
 
 	# Get all tweets for the account
 	# API is limited to 350 requests/hour per token
-	api = tweepy.API(auth)
+	print "Getting all tweets in current timeline..."
 	while True:
 		timeline = api.user_timeline(count = 350)
 
