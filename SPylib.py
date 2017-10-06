@@ -1,5 +1,7 @@
-def deleteAllTweets():
+import time, random, cPickle
 
+def deleteAllTweets(api):
+	''' This function deletes every tweet in the time line, deleting tweet by tweet '''
 	print "Getting all tweets in current timeline..."
 	while True:
 		timeline = api.user_timeline(count = 350)
@@ -14,14 +16,14 @@ def deleteAllTweets():
 			for t in timeline:
 				try:
 					api.destroy_status(t.id)
-					time.sleep(30)
+					time.sleep(random.randint(8, 29))
 				except:
 					print "Failed... Retrying..."
 					time.sleep(5)
 			print "Twitter timeline removed!"
 
-def sendDMToAll(messageText):
-
+def sendDMToAll(api, messageText):
+	''' This function takes as an argument the message to send to every contact possible as a DM '''
 	def DirectMessage(userId, messageText):
 		api.send_direct_message(screen_name=userId, text=messageText)
 
@@ -49,7 +51,8 @@ def limit_handled(cursor):
 			print "\nYou have to wait 15 minutes..."
 			time.sleep(15 * 60)
 
-def tweetFromList():
+def tweetFromList(api):
+	''' This tweets a list of tweets in the tweetList every different tweet is on a different line '''
 	num_line = 0
 
 	with open('numero.pickle', 'rb') as fLoad:
