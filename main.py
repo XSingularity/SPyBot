@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import tweepy, time, random
+import tweepy
 from SPylib import *
 
 consumer_key = ''
@@ -13,4 +13,4 @@ auth.set_access_token(access_token, access_token_secret)
 
 api = tweepy.API(auth)
 
-deleteAllTweets(api)
+unfollowAll(api)
