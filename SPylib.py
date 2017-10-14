@@ -1,34 +1,79 @@
 import time, random, cPickle, sys, tweepy
 
+def getIds():
+	with open("tweets.csv", "r") as t:
+		lines = t.read()
+
+	lines = lines.replace('"', '')
+	lines = lines.split("\n")
+
+	with open("ids.txt", "w") as id:
+		for line in lines:
+			line = line.split(",")
+			if line[0].isdigit():
+				id.write(line[0]+"\n")
+			try:
+				if line[6].isdigit():
+					id.write(line[6]+"\n")
+			except IndexError:
+				continue
+
+def delTweetsFromFile(api):
+	getIds()
+	with open("ids.txt", "r") as leTweets:
+		a = leTweets.read()
+
+	a = a.split("\n")
+
+	num = 0
+	for i in a:
+		try:
+			api.destroy_status(str(i))
+			num+=1
+			print "Done #%d" % num
+		except Exception as e:
+			num+=1
+			print e
+	print num
+
 def limit_handled(cursor):
 	while True:
 		try:
 			yield cursor.next()
-		except tweepy.TweepError:
-			print "Rate limit reached wait 15 minutes"
+		except tweepy.RateLimitError:
+			print "Rate limit reached wait 15 minutes..."
 			time.sleep(15*60)
+		except tweepy.TweepError:
+			print "Make sure you have a stable connection to Internet..."
+			time.sleep(5)
 
-def deleteAllTweets(api):
+def delAllTweets(api):
 	''' This function deletes every tweet in the time line, deleting tweet by tweet '''
+	del_total = 0
 	print "Getting all tweets in current timeline..."
 	while True:
-		timeline = api.user_timeline(count = 350)
+		try:
+			timeline = api.user_timeline(count = 350)
+			if len(timeline) < 1:
+				print "There is no timeline"
+				break
 
-		print "Found: %d" % (len(timeline))
-		if len(timeline) < 1:
-			print "There is no timeline"
-			break
-		else:
-			print "Removing..."
-			try:
+			else:
+				print "Found: %d\nRemoving..." % (len(timeline))
 				for t in timeline: # Delete tweets one by one
 					api.destroy_status(t.id)
-					time.sleep(random.randint(8, 29))
-			except tweepy.RateLimitError:
-				print "Failed... Retrying..."
-				time.sleep(5)
+					del_total += 1
+					print "tweet #%d deleted" % del_total
+					time.sleep(random.randint(1, 3))
 
-			print "Twitter timeline removed!"
+		except tweepy.TweepError:
+			print "Make sure you have a stable connection to Internet..."
+			time.sleep(5)
+		except tweepy.RateLimitError:
+			print "Rate limit reached, wait 15mins..."
+			time.sleep(15 * 60)
+
+	print "Every available tweet in your account has been removed!"
 
 def sendDMToAll(api, messageText):
 	''' This function takes as an argument the message to send to every contact possible as a DM '''
@@ -37,7 +82,7 @@ def sendDMToAll(api, messageText):
 
 	followers = list()
 	def GetFollowers():
-		for follower in tweepy.Cursor(api.followers).items():  # For each follower i have
+		for follower in limit_handled(tweepy.Cursor(api.followers).items()):  # For each follower i have
 			followers.append(follower.screen_name)
 		return followers # Return list of new followers
 
@@ -102,12 +147,13 @@ def unfollowNonFollowers(api):
 	
 	for follower in limit_handled(tweepy.Cursor(api.followers).items()):
 		followers.append(follower)
-		print "%s" % follower.screen_name
+		print "Follower: %s" % follower.screen_name
 		time.sleep(1)
 
 	print "Found %s followers, finding friends.." % len(followers)
 	for friend in limit_handled(tweepy.Cursor(api.friends).items()):
 		friends.append(friend)
+		print "Friend: %s" % friend.screen_name
 		time.sleep(1)
 
 	# creating dictionaries based on id's is handy too
@@ -129,26 +175,26 @@ def unfollowNonFollowers(api):
 
 	print "Unfollowing %s people who don't follow you back" % len(non_friends)
 	print "This will take approximately %s minutes." % (len(non_friends) / 60.0)
-	answer = raw_input("Are you sure? [Y/n]").lower()
+	answer = raw_input("Are you sure? [Y/n]: ").lower()
 	if answer and answer[0] != "y":
 		sys.exit(1)
 
 	for nf in non_friends:
-		print "Unfollowing %s" % nf.screen_name
 		try:
 			nf.unfollow()
-		except:
-			print "Failed... Wait 5 seconds...."
+			print "%s was unfollowed" % nf.screen_name
+			time.sleep(random.randint(1, 3))
+		except tweepy.TweepError:
+			print "Failed... Wait 5s...."
 			time.sleep(5)
 			nf.unfollow()
-		print "Succesful... Wait 1 second..."
-	time.sleep(1)
+	print "Succesfully unfollowed non-followers!"
 
 def unfollowAll(api):
 	''' This will unfollow every friend '''
 	print "Setting up..."
 	# Double Check cuz... you know... users...
-	answer = raw_input("Are you sure? [Y/n]: ").lower()
+	answer = raw_input("Are you sure? There is no coming back after this [Y/n]: ").lower()
 	if answer and answer[0] != "y":
 		sys.exit(1)
 
@@ -158,7 +204,13 @@ def unfollowAll(api):
 		time.sleep(1)
 
 def delAllDm(api):
-	for page in tweepy.Cursor(api.sent_direct_messages, count=100).pages():
-		for dm in page:
-			print dm.text
-			api.destroy_direct_message(dm.id)
+	''' This will delete every DM send and received '''
+	try:
+		for page in tweepy.Cursor(api.sent_direct_messages, count=100).pages():
+			for dm in page:
+				print dm.text
+				api.destroy_direct_message(dm.id)
+	except tweepy.RateLimitError:
+		print "Rate limit reached, wait 15 mins..."
+		time.sleep(15 * 60)
+		
