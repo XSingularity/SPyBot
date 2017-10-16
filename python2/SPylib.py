@@ -1,22 +1,27 @@
 import time, random, cPickle, sys, tweepy
 
 def getIds():
-	with open("tweets.csv", "r") as t:
-		lines = t.read()
+	try:
+		with open("tweets.csv", "r") as t:
+			lines = t.read()
 
-	lines = lines.replace('"', '')
-	lines = lines.split("\n")
+		lines = lines.replace('"', '')
+		lines = lines.split("\n")
 
-	with open("ids.txt", "w") as id:
-		for line in lines:
-			line = line.split(",")
-			if line[0].isdigit():
-				id.write(line[0]+"\n")
-			try:
-				if line[6].isdigit():
-					id.write(line[6]+"\n")
-			except IndexError:
-				continue
+		with open("ids.txt", "w") as id:
+			for line in lines:
+				line = line.split(",")
+				if line[0].isdigit():
+					id.write(line[0]+"\n")
+				try:
+					if line[6].isdigit():
+						id.write(line[6]+"\n")
+				except IndexError:
+					continue
+
+	except FileNotFoundError as e:
+		print "You have to ask twitter for the file of tweets (Go to your twitter's configuration) and put it in this folder"
+		sys.exit(1)
 
 def limit_handled(cursor):
 	while True:
@@ -52,29 +57,32 @@ def delAllTweets(api):
 	''' This function deletes every tweet in the time line, deleting tweet by tweet '''
 	del_total = 0
 	print "Getting all tweets in current timeline..."
-	while True:
-		try:
+	allTweets = []
+	try:
+		while True:
 			timeline = api.user_timeline(count = 350)
 			if len(timeline) < 1:
 				print "There is no timeline"
 				break
 
 			else:
-				print "Found: %d\nRemoving..." % (len(timeline))
-				for t in timeline: # Delete tweets one by one
-					api.destroy_status(t.id)
-					del_total += 1
-					print "tweet #%d deleted" % del_total
-					time.sleep(random.randint(1, 3))
+				allTweets.extend(timeline)
 
-		except tweepy.TweepError:
-			print "Make sure you have a stable connection to Internet..."
-			time.sleep(5)
-		except tweepy.RateLimitError:
-			print "Rate limit reached, wait 15mins..."
-			time.sleep(15 * 60)
+		print "Found: %d\nRemoving..." % (len(allTweets))
+		for t in allTweets: # Delete tweets one by one
+			api.destroy_status(t.id)
+			del_total += 1
+			print "tweet #%d deleted" % del_total
 
-	print "Every available tweet in your account has been removed!"
+		print "Every available tweet in your account has been removed!"
+	
+	except tweepy.TweepError:
+		print "Make sure you have a stable connection to Internet..."
+		time.sleep(5)
+	except tweepy.RateLimitError:
+		print "Rate limit reached, wait 15mins..."
+		time.sleep(15 * 60)
+
 
 def tweetFromList(api):
 	''' This tweets a list of tweets in the tweetList every different tweet is on a different line '''
@@ -84,41 +92,50 @@ def tweetFromList(api):
 		line_number = int(cPickle.load(fLoad))
 
 	with open('tweetList.txt', 'r') as tweetsFile:
-		f=tweetsFile.readlines()
+		f = tweetsFile.readlines()
 
-	for line in f:
+	hashtag = raw_input("Enter a hashtag if you want to use one for all of the tweets else just press enter: ")
+	try:
+		for line in f:
+			line = line+" "+hashtag
+			line = line.strip()
+			line = line.strip('\n')
 
-		line = line+" "+hashtag
-		line = line.strip()
-		line = line.strip('\n')
-
-		if num_line == line_number and line != f[-1] and len(line) <= 140:
-			num_line+=1
-			line_number+=1
-
-			with open('numero.pickle', 'wb') as fWrite:
-				cPickle.dump(num_line, fWrite)
-
-			api.update_status(status=line)
-			print line
-			wating_dig = int(random.random()*5+15) * 60
-			print wating_dig/60
-			time.sleep(wating_dig) # n minutes
-
-		elif line == f[-1] and len(line) <= 140:
-			num_line = 0
-			with open('numero.pickle', 'wb') as fWrite:
-				cPickle.dump(num_line, fWrite)
-
-			api.update_status(status=line)
-			print line
-
-		else:
-			if len(line) >140:
+			if num_line == line_number and line != f[-1] and len(line) <= 140:
+				num_line+=1
 				line_number+=1
-			num_line+=1
-			print "Next Line %d" % (num_line)
-			continue
+
+				with open('numero.pickle', 'wb') as fWrite:
+					_pickle.dump(num_line, fWrite)
+
+				api.update_status(status=line)
+				print line
+				wating_dig = int(random.random()*5+15) * 60
+				print wating_dig/60
+				time.sleep(wating_dig) # n minutes
+
+			elif line == f[-1] and len(line) <= 140:
+				num_line = 0
+				with open('numero.pickle', 'wb') as fWrite:
+					_pickle.dump(num_line, fWrite)
+
+				api.update_status(status=line)
+				print line
+
+			else:
+				if len(line) >140:
+					line_number+=1
+				num_line+=1
+				print "Next Line %d" % (num_line)
+				continue
+
+	except tweepy.TweepError:
+		print "Make sure you have a stable connection to Internet..."
+		time.sleep(5)
+
+	except tweepy.RateLimitError:
+		print "Rate limit reached, wait 15mins..."
+		time.sleep(15 * 60)
 
 def unfollowNonFollowers(api):
 	num = 0
@@ -184,7 +201,7 @@ def unfollowAll(api):
 		friend.unfollow()
 		time.sleep(1)
 
-def sendDMToAll(api, messageText):
+def sendDMToAll(api):
 	''' This function takes as an argument the message to send to every contact possible as a DM '''
 	def DirectMessage(userId, messageText):
 		api.send_direct_message(screen_name=userId, text=messageText)
@@ -197,6 +214,7 @@ def sendDMToAll(api, messageText):
 
 	try:
 		GetFollowers()
+		messageText = raw_input("Enter the message you want to send: ")
 		for follower in followers:
 			DirectMessage(follower, messageText) # Send them a dm
 			time.sleep(random.randint(1, 3))
@@ -214,3 +232,5 @@ def delAllDm(api):
 	except tweepy.RateLimitError:
 		print "Rate limit reached, wait 15 mins..."
 		time.sleep(15 * 60)
+	except tweepy.TweepError:
+		print "Make sure you have a stable connection to Internet..."
