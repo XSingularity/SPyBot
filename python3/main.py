@@ -1,13 +1,18 @@
 import tweepy
+import webbrowser
 from SPylib import *
 
-consumer_key = ""
-consumer_secret = ""
-access_token = ""
-access_token_secret = ""
+consumer_key = '4bjxMFFpjPgsn6gH6ImbtzhZf'
+consumer_secret = 'Ung82wKl7Cl6Hk3oQMjkvfZmPUll3boRzzGEUyR6ZcRFcAzFue'
 
 auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
-auth.set_access_token(access_token, access_token_secret)
+
+# Redirect user to Twitter to authorize
+webbrowser.open(auth.get_authorization_url())
+
+# Get access token
+verifier_value = input('Verifier value: ')
+auth.get_access_token(verifier_value)
 
 api = tweepy.API(auth)
 
@@ -24,4 +29,6 @@ while True:
 	except KeyboardInterrupt:
 		print("\n\nHave a good one!\n")
 		break
+	except Exception as e:
+		print(e)
 	

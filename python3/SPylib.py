@@ -227,7 +227,7 @@ def delAllDm(api):
 	try:
 		for page in tweepy.Cursor(api.sent_direct_messages, count=100).pages():
 			for dm in page:
-				print(dm.text)
+				#print(dm.text) # This shows DM's text
 				api.destroy_direct_message(dm.id)
 	except tweepy.RateLimitError:
 		print("Rate limit reached, wait 15 mins...")
