@@ -9,3 +9,9 @@
     <li>Delete all your DM's</li>
     <li>Send DM's to all your friends</li>
 </ul>
+
+<h4>Requirements:</h4>
+<ul>
+	<li>python >= 2.7</li>
+	<li>tweepy</li>
+</ul>
