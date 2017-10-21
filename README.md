@@ -1,6 +1,7 @@
-<h1>Singularity Python Bot</h1>
+<h1>A Python automatization twitter tool</h1>
 
-<p>This is an automation tool for twitter that lets you</p>
+<p>With this tool you can:</p>
+
 <ul>
     <li>Tweet from a predefined list of tweets</li>
     <li>Unfollow Everybody</li>
