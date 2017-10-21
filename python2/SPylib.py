@@ -1,5 +1,10 @@
 import time, random, cPickle, sys, tweepy
 
+def test(api):
+	public_tweets = api.home_timeline()
+	for tweet in public_tweets:
+		print tweet.text
+
 def getIds():
 	try:
 		with open("tweets.csv", "r") as t:

@@ -1,5 +1,10 @@
 import time, random, _pickle, sys, tweepy
 
+def test(api):
+	public_tweets = api.home_timeline()
+	for tweet in public_tweets:
+		print(tweet.text)
+
 def getIds():
 	try:
 		with open("tweets.csv", "r") as t:
@@ -191,7 +196,7 @@ def unfollowNonFollowers(api):
 def unfollowAll(api):
 	''' This will unfollow every friend '''
 	print("Setting up...")
-	# Double Check cuz... you know... users...
+	# Check cuz... you know... users...
 	answer = input("Are you sure? There is no coming back after this [Y/n]: ").lower()
 	if answer and answer[0] != "y":
 		sys.exit(1)
