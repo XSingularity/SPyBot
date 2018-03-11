@@ -1,4 +1,4 @@
-<h1>A Python automatization tool for Twitter</h1>
+<h1>A Python automation tool for Twitter</h1>
 
 <p>With this tool you can:</p>
 
